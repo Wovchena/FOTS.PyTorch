@@ -1,9 +1,7 @@
 .idea/
 .vscode/
-saved/
 data/
-datasets/
-runs
+runs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -12,6 +10,10 @@ __pycache__/
 
 # C extensions
 *.so
+FOTS/utils/lanms/adaptor.exp
+FOTS/utils/lanms/adaptor.lib
+FOTS/utils/lanms/adaptor.obj
+FOTS/utils/lanms/clipper.obj
 
 # Distribution / packaging
 .Python

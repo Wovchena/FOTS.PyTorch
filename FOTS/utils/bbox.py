@@ -329,6 +329,8 @@ class Toolbox:
                                   color=(255, 255, 0), thickness=1)
 
         if output_dir:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
             img_path = output_dir / im_fn.name
             cv2.imwrite(img_path.as_posix(), im[:, :, ::-1])
 

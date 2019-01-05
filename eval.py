@@ -17,7 +17,6 @@ def load_model(model_path, with_gpu):
     config = checkpoints['config']
     state_dict = checkpoints['state_dict']
     model = FOTSModel(config)
-    model = torch.nn.DataParallel(model)
     model.load_state_dict(state_dict)
     if with_gpu:
         model = model.cuda()

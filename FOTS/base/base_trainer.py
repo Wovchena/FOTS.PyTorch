@@ -29,8 +29,6 @@ class BaseTrainer:
                 self.with_cuda = True
                 self.gpus = {i: item for i, item in enumerate(self.config['gpus'])}
                 device = 'cuda'
-                if torch.cuda.device_count() > 1 and len(self.gpus) > 1:
-                    self.model = torch.nn.DataParallel(self.model)
                 torch.cuda.empty_cache()
             else:
                 self.with_cuda = False

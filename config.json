@@ -1,17 +1,17 @@
 {
     "name": "FOTS",
-    "cuda": false,
-    "gpus": [0, 1, 2, 3],
+    "cuda": true,
+    "gpus": [0],
     "data_loader": {
-        "dataset":"synth800k",
-        "data_dir": "/Users/luning/Dev/data/SynthText/SynthText/",
-        "batch_size": 4,
+        "dataset":"icdar2015",
+        "data_dir": "C:\\Users\\vzlobin\\Documents\\repo\\FOTS.PyTorch\\data\\icdar\\icdar2015\\4.4\\training",
+        "batch_size": 18,
         "shuffle": true,
-        "workers": 0
+        "workers": 4
     },
     "validation": {
         "validation_split": 0.1,
-        "shuffle": true
+        "shuffle": false
     },
 
     "lr_scheduler_type": "ExponentialLR",
@@ -22,14 +22,14 @@
  
     "optimizer_type": "Adam",
     "optimizer": {
-        "lr": 0.0001,
+        "lr": 0.001,
         "weight_decay": 1e-5
     },
     "loss": "FOTSLoss",
     "metrics": ["fots_metric"],
     "trainer": {
         "epochs": 100000,
-        "save_dir": "saved/",
+        "save_dir": "runs/",
         "save_freq": 10,
         "verbosity": 2,
         "monitor": "hmean",
