@@ -1,8 +1,7 @@
-
 from torch.utils.ffi import _wrap_function
 from ._crop_and_resize import lib as _lib, ffi as _ffi
 
-__all__ = []
+__all__ = [] # TODO what is it for?
 def _import_symbols(locals):
     for symbol in dir(_lib):
         fn = getattr(_lib, symbol)
@@ -11,5 +10,6 @@ def _import_symbols(locals):
         else:
             locals[symbol] = fn
         __all__.append(symbol)
+
 
 _import_symbols(locals())

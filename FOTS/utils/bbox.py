@@ -311,11 +311,10 @@ class Toolbox:
 
         polys = []
         if len(boxes) != 0:
-
             for box in boxes:
                 box = Toolbox.sort_poly(box.astype(np.int32))
                 if np.linalg.norm(box[0] - box[1]) < 5 or np.linalg.norm(box[3] - box[0]) < 5:
-                    # print('wrong direction')
+                    print('wrong direction')
                     continue
                 poly = np.array([[box[0, 0], box[0, 1]], [box[1, 0], box[1, 1]], [box[2, 0], box[2, 1]],
                                  [box[3, 0], box[3, 1]]])

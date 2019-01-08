@@ -9,8 +9,8 @@ import scipy.io as sio
 
 @pytest.mark.skip
 def test_roi():
-    img_fn = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_images/img_1.jpg'
-    img_gt = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_1.txt'
+    img_fn = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/data/icdar/icdar2015/4.4/training/ch4_training_images/img_1.jpg'
+    img_gt = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_1.txt'
     img = cv2.imread(img_fn)
     boxes = []
     transcripts = []
@@ -43,8 +43,8 @@ def test_roi():
 
 @pytest.mark.skip
 def test_rect_icdar():
-    img_fn = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_images/img_283.jpg'
-    img_gt = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_283.txt'
+    img_fn = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/data/icdar/icdar2015/4.4/training/ch4_training_images/img_283.jpg'
+    img_gt = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_283.txt'
     img = cv2.imread(img_fn)
     boxes = []
     transcripts = []
@@ -113,8 +113,8 @@ def test_rect_synth800k():
 
 @pytest.mark.skip
 def test_affine():
-    img_fn = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_images/img_100.jpg'
-    img_gt = '/Users/luning/Dev/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_100.txt'
+    img_fn = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/dataa/icdar/icdar2015/4.4/training/ch4_training_images/img_100.jpg'
+    img_gt = 'C:/Users/vzlobin/Documents/repo/FOTS.PyTorch/data/icdar/icdar2015/4.4/training/ch4_training_localization_transcription_gt/gt_img_100.txt'
     img = cv2.imread(img_fn)
     cv2.imshow('img', img)
     cv2.waitKey()
@@ -150,4 +150,3 @@ def test_affine():
     x = (x*255).astype(np.uint8)
     cv2.imshow('img', x)
     cv2.waitKey()
-

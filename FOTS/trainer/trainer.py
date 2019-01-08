@@ -5,6 +5,7 @@ from ..utils.bbox import Toolbox
 from ..model.keys import keys
 from ..utils.util import strLabelConverter
 from ..utils.util import show_box
+import tqdm
 
 class Trainer(BaseTrainer):
     """
@@ -15,8 +16,8 @@ class Trainer(BaseTrainer):
         self.optimizer is by default handled by BaseTrainer based on config.
     """
     def __init__(self, model, loss, metrics, resume, config,
-                 data_loader, toolbox: Toolbox, valid_data_loader=None, train_logger=None):
-        super(Trainer, self).__init__(model, loss, metrics, resume, config, train_logger)
+                 data_loader, toolbox: Toolbox, valid_data_loader=None):
+        super(Trainer, self).__init__(model, loss, metrics, resume, config)
         self.config = config
         self.batch_size = data_loader.batch_size
         self.data_loader = data_loader
@@ -56,7 +57,8 @@ class Trainer(BaseTrainer):
 
         total_loss = 0
         total_metrics = np.zeros(3) # precious, recall, hmean
-        for batch_idx, gt in enumerate(self.data_loader):
+        pbar = tqdm.tqdm(self.data_loader, 'Epoch ' + str(epoch))
+        for batch_idx, gt in enumerate(pbar):
             try:
                 imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping= gt
                 img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
@@ -101,13 +103,8 @@ class Trainer(BaseTrainer):
                 total_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
                                                         (boxes, transcripts, gt_fns))
 
-                if self.verbosity >= 2 and batch_idx % self.log_step == 0:
-                    self.logger.info('Train Epoch: {} [{}/{} ({:.0f}%)] Loss: {:.6f} Detection Loss: {:.6f} Recognition Loss:{:.6f}'.format(
-                        epoch,
-                        batch_idx * self.data_loader.batch_size,
-                        len(self.data_loader) * self.data_loader.batch_size,
-                        100.0 * batch_idx / len(self.data_loader),
-                        loss.item(), det_loss.item(), reg_loss.item()))
+                pbar.set_postfix_str(f'Loss: {loss.item():.4f}, Detection loss: {det_loss.item():.4f}, '
+                                     f'Recognition loss: {reg_loss.item():.4f}', refresh=False)
             except:
                 print(imagePaths)
                 raise
@@ -122,6 +119,8 @@ class Trainer(BaseTrainer):
         if self.valid:
             val_log = self._valid_epoch()
             log = {**log, **val_log}
+            for key, value in log.items():
+                self.logger.info('    {:15s}: {}'.format(str(key), value))
 
         return log
 

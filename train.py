@@ -7,7 +7,6 @@ import pathlib
 from FOTS.data_loader import SynthTextDataLoaderFactory
 from FOTS.data_loader import OCRDataLoaderFactory
 from FOTS.data_loader import ICDAR
-from FOTS.logger import Logger
 from FOTS.model.model import *
 from FOTS.model.loss import *
 from FOTS.model.metric import *
@@ -18,7 +17,6 @@ logging.basicConfig(level=logging.DEBUG, format='')
 
 
 def main(config, resume):
-    train_logger = Logger()
 
     if config['data_loader']['dataset'] == 'icdar2015':
         # ICDAR 2015
@@ -44,7 +42,6 @@ def main(config, resume):
                       config=config,
                       data_loader=train,
                       valid_data_loader=val,
-                      train_logger=train_logger,
                       toolbox = Toolbox)
 
     trainer.train()
@@ -65,7 +62,7 @@ if __name__ == '__main__':
     if args.resume is not None:
         if args.config is not None:
             logger.warning('Warning: --config overridden by --resume')
-        config = torch.load(args.resume, map_location = 'cpu')['config']
+        config = torch.load(args.resume)['config']
     elif args.config is not None:
         config = json.load(open(args.config))
         path = os.path.join(config['trainer']['save_dir'], config['name'])

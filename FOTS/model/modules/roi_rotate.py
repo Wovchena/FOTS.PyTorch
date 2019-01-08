@@ -57,8 +57,9 @@ class ROIRotate(nn.Module):
             max_width = width_box if width_box > max_width else max_width
 
             mapped_x2, mapped_y2 = (width_box, 0)
+            # skip x3, y3 as it is enough for affine transform
 
-            src_pts = np.float32([(x1, y1), (x2, y2),(x4, y4)])
+            src_pts = np.float32([(x1, y1), (x2, y2),(x4, y4)]) # TODO why we take source pts but not rotated_rect
             dst_pts = np.float32([
                 (mapped_x1, mapped_y1), (mapped_x2, mapped_y2), (mapped_x4, mapped_y4)
             ])
@@ -120,7 +121,11 @@ class ROIRotate(nn.Module):
     @staticmethod
     def param2theta(param, w, h):
         param = np.vstack([param, [0, 0, 1]])
-        param = np.linalg.inv(param)
+        try:
+            param = np.linalg.inv(param)
+        except np.linalg.linalg.LinAlgError:
+            print('this should happen really seldom')  # TODO does it still happen
+            return np.eye(2, 3)
 
         theta = np.zeros([2, 3])
         theta[0, 0] = param[0, 0]
@@ -130,5 +135,3 @@ class ROIRotate(nn.Module):
         theta[1, 1] = param[1, 1]
         theta[1, 2] = param[1, 2] * 2 / h + theta[1, 0] + theta[1, 1] - 1
         return theta
-
-

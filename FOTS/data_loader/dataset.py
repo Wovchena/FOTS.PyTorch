@@ -99,7 +99,7 @@ class ICDAR(Dataset):
         bboxes = self.bboxs[index] # num_words * 8
         transcripts = self.transcripts[index]
 
-        try:
+        try: # TODO check what it handles. Looks like exceptions raised manually from __transform()
             return self.__transform((imageName, bboxes, transcripts))
         except Exception as e:
             return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))
@@ -228,7 +228,7 @@ class SynthTextDataset(Dataset):
         wordBBoxes = self.wordBBoxes[index] # 2 * 4 * num_words
         transcripts = self.transcripts[index]
 
-        try:
+        try: # TODO check what it handles. Looks like exceptions raised manually from __transform()
             return self.__transform((imageName, wordBBoxes, transcripts))
         except:
             return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))

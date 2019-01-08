@@ -12,7 +12,7 @@ class BaseTrainer:
     """
     Base class for all trainers
     """
-    def __init__(self, model, loss, metrics, resume, config, train_logger=None):
+    def __init__(self, model, loss, metrics, resume, config):
         self.config = config
         self.logger = logging.getLogger(self.__class__.__name__)
         self.model = model
@@ -45,7 +45,6 @@ class BaseTrainer:
         self.logger.debug('Model is initialized.')
         self._log_memory_useage()
 
-        self.train_logger = train_logger
         self.optimizer = getattr(optim, config['optimizer_type'])(model.parameters(),
                                                                   **config['optimizer'])
         self.lr_scheduler = getattr(
@@ -86,11 +85,6 @@ class BaseTrainer:
                         log['val_' + metric.__name__] = result['val_metrics'][i]
                 else:
                     log[key] = value
-            if self.train_logger is not None:
-                self.train_logger.add_entry(log)
-                if self.verbosity >= 1:
-                    for key, value in log.items():
-                        self.logger.info('    {:15s}: {}'.format(str(key), value))
             if (self.monitor_mode == 'min' and log[self.monitor] < self.monitor_best)\
                     or (self.monitor_mode == 'max' and log[self.monitor] > self.monitor_best):
                 self.monitor_best = log[self.monitor]
@@ -143,7 +137,6 @@ class BaseTrainer:
         state = {
             'arch': arch,
             'epoch': epoch,
-            'logger': self.train_logger,
             'state_dict': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
             'monitor_best': self.monitor_best,
@@ -175,6 +168,5 @@ class BaseTrainer:
                 for k, v in state.items():
                     if isinstance(v, torch.Tensor):
                         state[k] = v.cuda(torch.device('cuda'))
-        self.train_logger = checkpoint['logger']
         self.config = checkpoint['config']
         self.logger.info("Checkpoint '{}' (epoch {}) loaded".format(resume_path, self.start_epoch))

@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.DEBUG, format='')
 
 def load_model(model_path, with_gpu):
     logger.info("Loading checkpoint: {} ...".format(model_path))
-    checkpoints = torch.load(model_path, map_location = 'cpu')
+    checkpoints = torch.load(model_path)
     if not checkpoints:
         raise RuntimeError('No checkpoint found.')
     config = checkpoints['config']
@@ -53,12 +53,3 @@ if __name__ == '__main__':
                         help='dir for input images')
     args = parser.parse_args()
     main(args)
-
-
-
-
-
-
-
-
-

@@ -4,9 +4,7 @@ import glob as gb
 import numpy as np
 import cv2
 import csv
-
 from shapely.geometry import Polygon
-
 
 
 def get_images(root):
@@ -227,7 +225,10 @@ def shrink_poly(poly, r):
 
 def point_dist_to_line(p1, p2, p3):
     # compute the distance from p3 to p1-p2
-    return np.linalg.norm(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1)
+    if not np.array_equal(p1, p2):
+        return np.abs(np.cross(p2 - p1, p1 - p3)) / np.linalg.norm(p2 - p1)
+    else:
+        return np.linalg.norm(p3 - p1)
 
 
 def fit_line(p1, p2):
@@ -650,7 +651,7 @@ def image_label(txt_root, image_list, img_name, index,
     return images, score_maps, geo_maps, training_masks
 
 
-# def collate_fn(batch):
+# def collate_fn(batch): TODO check what is the diff
 #     img, score_map, geo_map, training_mask = zip(*batch)
 #     bs = len(score_map)
 #     images = []
@@ -702,7 +703,6 @@ def collate_fn(batch):
             d = d.permute(2, 0, 1)
             training_masks.append(d)
 
-
     images = torch.stack(images, 0)
     score_maps = torch.stack(score_maps, 0)
     geo_maps = torch.stack(geo_maps, 0)
@@ -724,7 +724,6 @@ def collate_fn(batch):
     imagePaths = [p.name for p in imagePaths]
 
     return imagePaths, images, score_maps, geo_maps, training_masks, texts, bboxs, mapping
-
 
 ## img = bs * 512 * 512 *3
 ## score_map = bs* 128 * 128 * 1
