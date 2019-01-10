@@ -192,7 +192,8 @@ class Toolbox:
         # nms part
         start = time.time()
         # boxes = nms_locality.nms_locality(boxes.astype(np.float64), nms_thres)
-        boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), nms_thres)
+        boxes = lanms.merge_quadrangle_n9(boxes.astype('float32'), nms_thres)  # TODO try replacing with https://github.com/pytorch/vision/issues/392#issuecomment-442036910
+        # TODO in case of proposed NMS is bad if the number of proposals is too big then skip
         timer['nms'] = time.time() - start
         if boxes.shape[0] == 0:
             return np.array([]), timer

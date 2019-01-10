@@ -5,7 +5,6 @@ import logging
 import torch
 import torch.optim as optim
 from tensorboardX import SummaryWriter
-from ..utils.util import ensure_dir
 
 
 class BaseTrainer:
@@ -59,7 +58,8 @@ class BaseTrainer:
         self.monitor_best = math.inf if self.monitor_mode == 'min' else -math.inf
         self.start_epoch = 1
         self.checkpoint_dir = os.path.join(config['trainer']['save_dir'], self.name)
-        ensure_dir(self.checkpoint_dir)
+        if not os.path.exists(self.checkpoint_dir):
+            os.makedirs(self.checkpoint_dir)
         json.dump(config, open(os.path.join(self.checkpoint_dir, 'config.json'), 'w'),
                   indent=4, sort_keys=False)
         if resume:
@@ -131,7 +131,7 @@ class BaseTrainer:
 
         :param epoch: current epoch number
         :param log: logging information of the epoch
-        :param save_best: if True, rename the saved checkpoint to 'model_best.pth.tar'
+        :param save_best: if True, rename the saved checkpoint to 'best_model.pt'
         """
         arch = type(self.model).__name__
         state = {
@@ -146,8 +146,11 @@ class BaseTrainer:
                                 .format(epoch, log['loss']))
         torch.save(state, filename)
         if save_best:
-            os.rename(filename, os.path.join(self.checkpoint_dir, 'model_best.pth.tar'))
-            self.logger.info("Saving current best: {} ...".format('model_best.pth.tar'))
+            best_model_file = os.path.join(self.checkpoint_dir, 'best_model.pt')
+            if os.path.isfile(best_model_file):
+                os.remove(best_model_file)
+            os.rename(filename, best_model_file)
+            self.logger.info("Saving current best: {} ...".format('best_model.pt'))
         else:
             self.logger.info("Saving checkpoint: {} ...".format(filename))
 

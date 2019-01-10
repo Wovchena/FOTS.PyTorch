@@ -42,7 +42,7 @@ def main(config, resume):
                       config=config,
                       data_loader=train,
                       valid_data_loader=val,
-                      toolbox = Toolbox)
+                      toolbox=Toolbox)
 
     trainer.train()
 

@@ -4,7 +4,7 @@ import numpy as np
 import math
 import torch
 import skimage.transform as trans
-from ...utils.util import show_box
+# from ...utils.util import show_box
 
 class ROIRotate(nn.Module):
 
@@ -43,10 +43,14 @@ class ROIRotate(nn.Module):
             rotated_rect = cv2.minAreaRect(np.array([[x1, y1], [x2, y2], [x3, y3], [x4, y4]]))
             box_w, box_h = rotated_rect[1][0], rotated_rect[1][1]
 
+            if 0 == box_w or 0 == box_h:  # TODO remove if doesnt happen
+                print('0 == box_w or 0 == box_h')
+                continue
+
             width = feature.shape[2]
             height = feature.shape[1]
 
-            if box_w <= box_h:
+            if box_w < box_h:
                 box_w, box_h = box_h, box_w
 
             mapped_x1, mapped_y1 = (0, 0)
@@ -74,7 +78,7 @@ class ROIRotate(nn.Module):
 
             affine_matrix = ROIRotate.param2theta(affine_matrix, width, height)
 
-            affine_matrix *= 1e20 # cancel the error when type conversion
+            affine_matrix *= 1e20 # cancel the error when type conversion # TODO WTF
             affine_matrix = torch.tensor(affine_matrix, device=feature.device, dtype=torch.float)
             affine_matrix /= 1e20
 
@@ -121,11 +125,7 @@ class ROIRotate(nn.Module):
     @staticmethod
     def param2theta(param, w, h):
         param = np.vstack([param, [0, 0, 1]])
-        try:
-            param = np.linalg.inv(param)
-        except np.linalg.linalg.LinAlgError:
-            print('this should happen really seldom')  # TODO does it still happen
-            return np.eye(2, 3)
+        param = np.linalg.inv(param)
 
         theta = np.zeros([2, 3])
         theta[0, 0] = param[0, 0]

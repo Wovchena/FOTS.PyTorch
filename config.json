@@ -5,9 +5,9 @@
     "data_loader": {
         "dataset":"icdar2015",
         "data_dir": "C:\\Users\\vzlobin\\Documents\\repo\\FOTS.PyTorch\\data\\icdar\\icdar2015\\4.4\\training",
-        "batch_size": 4,
+        "batch_size": 10,
         "shuffle": true,
-        "workers": 3
+        "workers": 4
     },
     "validation": {
         "validation_split": 0.1,

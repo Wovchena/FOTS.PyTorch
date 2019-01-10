@@ -25,13 +25,6 @@ class FOTSModel(BaseModel):
         self.detector = Detector()
         self.roirotate = ROIRotate()
 
-        def backward_hook(self, grad_input, grad_output):
-            for g in grad_input:
-                g[g != g] = 0  # replace all nan/inf in gradients to zero
-
-        self.recognizer.register_backward_hook(backward_hook)
-        self.detector.register_backward_hook(backward_hook)
-
     def forward(self, *input):
         '''
 
@@ -45,9 +38,7 @@ class FOTSModel(BaseModel):
         else:
             device = torch.device('cpu')
 
-
         feature_map = self.sharedConv.forward(image)
-
         score_map, geo_map = self.detector(feature_map)
 
         if self.training:
@@ -60,7 +51,7 @@ class FOTSModel(BaseModel):
             score = score.detach().cpu().numpy()
             geometry = geometry.detach().cpu().numpy()
 
-            timer = {'net': 0, 'restore': 0, 'nms': 0}
+            timer = {'net': 0, 'restore': 0, 'nms': 0}  # TODO remove timers
 
             pred_boxes = []
             pred_mapping = []

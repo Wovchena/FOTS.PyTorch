@@ -177,7 +177,7 @@ namespace lanms {
 		std::iota(std::begin(indices), std::end(indices), 0);
 		std::sort(std::begin(indices), std::end(indices), [&](size_t i, size_t j) { return polys[i].score > polys[j].score; });
 
-		std::vector<size_t> keep;
+		std::list<size_t> keep;
 		while (indices.size()) {
 			size_t p = 0, cur = indices[0];
 			keep.emplace_back(cur);
@@ -190,7 +190,8 @@ namespace lanms {
 		}
 
 		std::vector<Polygon> ret;
-		for (auto &&i: keep) {
+		ret.reserve(keep.size());
+		for (const size_t i: keep) {
 			ret.emplace_back(polys[i]);
 		}
 		return ret;

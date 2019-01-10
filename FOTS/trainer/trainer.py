@@ -1,11 +1,12 @@
 import numpy as np
 import torch
+import tqdm
 from ..base import BaseTrainer
 from ..utils.bbox import Toolbox
 from ..model.keys import keys
 from ..utils.util import strLabelConverter
-from ..utils.util import show_box
-import tqdm
+# from ..utils.util import show_box
+
 
 class Trainer(BaseTrainer):
     """
@@ -59,55 +60,51 @@ class Trainer(BaseTrainer):
         total_metrics = np.zeros(3) # precious, recall, hmean
         pbar = tqdm.tqdm(self.data_loader, 'Epoch ' + str(epoch))
         for batch_idx, gt in enumerate(pbar):
-            try:
-                imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping= gt
-                img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
+            imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping= gt
+            img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
 
-                # import cv2
-                # for i in range(img.shape[0]):
-                #     image = img[i]
-                #     for tt, bb in zip(transcripts[i], boxes[i]):
-                #         show_box(image.permute(1, 2, 0).detach().cpu().numpy()[:,:, ::-1].astype(np.uint8).copy(), bb, tt)
+            # import cv2
+            # for i in range(img.shape[0]):
+            #     image = img[i]
+            #     for tt, bb in zip(transcripts[i], boxes[i]):
+            #         show_box(image.permute(1, 2, 0).detach().cpu().numpy()[:,:, ::-1].astype(np.uint8).copy(), bb, tt)
 
-                self.optimizer.zero_grad()
-                pred_score_map, pred_geo_map, pred_recog, pred_boxes, pred_mapping, indices = self.model.forward(img, boxes, mapping)
+            self.optimizer.zero_grad()
+            pred_score_map, pred_geo_map, pred_recog, pred_boxes, pred_mapping, indices = self.model.forward(img, boxes, mapping)
 
-                transcripts = transcripts[indices]
-                pred_boxes = pred_boxes[indices]
+            transcripts = transcripts[indices]
+            pred_boxes = pred_boxes[indices]
+            pred_mapping = pred_mapping[indices]
+            labels, label_lengths = self.labelConverter.encode(transcripts.tolist())
+            recog = (labels, label_lengths)
+
+            det_loss, reg_loss = self.loss(score_map, pred_score_map, geo_map, pred_geo_map, recog, pred_recog, training_mask)
+            loss = det_loss + reg_loss
+            loss.backward()
+            self.optimizer.step()
+
+            total_loss += loss.item()
+            pred_transcripts = []
+            if len(pred_mapping) > 0:
                 pred_mapping = pred_mapping[indices]
-                labels, label_lengths = self.labelConverter.encode(transcripts.tolist())
-                recog = (labels, label_lengths)
+                pred_boxes = pred_boxes[indices]
+                pred_fns = [imagePaths[i] for i in pred_mapping]
 
-                det_loss, reg_loss = self.loss(score_map, pred_score_map, geo_map, pred_geo_map, recog, pred_recog, training_mask)
-                loss = det_loss + reg_loss
-                loss.backward()
-                self.optimizer.step()
+                pred, lengths = pred_recog
+                _, pred = pred.max(2)
+                for i in range(lengths.numel()):
+                    l = lengths[i]
+                    p = pred[:l, i]
+                    t = self.labelConverter.decode(p, l)
+                    pred_transcripts.append(t)
+                pred_transcripts = np.array(pred_transcripts)
 
-                total_loss += loss.item()
-                pred_transcripts = []
-                if len(pred_mapping) > 0:
-                    pred_mapping = pred_mapping[indices]
-                    pred_boxes = pred_boxes[indices]
-                    pred_fns = [imagePaths[i] for i in pred_mapping]
+            gt_fns = [imagePaths[i] for i in mapping]
+            total_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
+                                                    (boxes, transcripts, gt_fns))
 
-                    pred, lengths = pred_recog
-                    _, pred = pred.max(2)
-                    for i in range(lengths.numel()):
-                        l = lengths[i]
-                        p = pred[:l, i]
-                        t = self.labelConverter.decode(p, l)
-                        pred_transcripts.append(t)
-                    pred_transcripts = np.array(pred_transcripts)
-
-                gt_fns = [imagePaths[i] for i in mapping]
-                total_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
-                                                        (boxes, transcripts, gt_fns))
-
-                pbar.set_postfix_str(f'Loss: {loss.item():.4f}, Detection loss: {det_loss.item():.4f}, '
-                                     f'Recognition loss: {reg_loss.item():.4f}', refresh=False)
-            except:
-                print(imagePaths)
-                raise
+            pbar.set_postfix_str(f'Loss: {loss.item():.4f}, Detection loss: {det_loss.item():.4f}, '
+                                 f'Recognition loss: {reg_loss.item():.4f}', refresh=False)
 
         log = {
             'loss': total_loss / len(self.data_loader),
@@ -115,8 +112,7 @@ class Trainer(BaseTrainer):
             'recall': total_metrics[1] / len(self.data_loader),
             'hmean': total_metrics[2] / len(self.data_loader)
         }
-
-        if self.valid:
+        if self.valid and 5 < epoch:  # skip first epochs as it generates too many proposals
             val_log = self._valid_epoch()
             log = {**log, **val_log}
             for key, value in log.items():
@@ -137,33 +133,29 @@ class Trainer(BaseTrainer):
         total_val_metrics = np.zeros(3)
         with torch.no_grad():
             for batch_idx, gt in enumerate(self.valid_data_loader):
-                try:
-                    imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping = gt
-                    img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
+                imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping = gt
+                img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
 
-                    pred_score_map, pred_geo_map, pred_recog, pred_boxes, pred_mapping, indices = self.model.forward(img, boxes, mapping)
-                    pred_transcripts = []
-                    pred_fns = []
-                    if len(pred_mapping) > 0:
-                        pred_mapping = pred_mapping[indices]
-                        pred_boxes = pred_boxes[indices]
-                        pred_fns = [imagePaths[i] for i in pred_mapping]
+                pred_score_map, pred_geo_map, pred_recog, pred_boxes, pred_mapping, indices = self.model(img, boxes, mapping)
+                pred_transcripts = []
+                pred_fns = []
+                if len(pred_mapping) > 0:
+                    pred_mapping = pred_mapping[indices]
+                    pred_boxes = pred_boxes[indices]
+                    pred_fns = [imagePaths[i] for i in pred_mapping]
 
-                        pred, lengths = pred_recog
-                        _, pred = pred.max(2)
-                        for i in range(lengths.numel()):
-                            l = lengths[i]
-                            p = pred[:l, i]
-                            t = self.labelConverter.decode(p, l)
-                            pred_transcripts.append(t)
-                        pred_transcripts = np.array(pred_transcripts)
+                    pred, lengths = pred_recog
+                    _, pred = pred.max(2)
+                    for i in range(lengths.numel()):
+                        l = lengths[i]
+                        p = pred[:l, i]
+                        t = self.labelConverter.decode(p, l)
+                        pred_transcripts.append(t)
+                    pred_transcripts = np.array(pred_transcripts)
 
-                    gt_fns = [imagePaths[i] for i in mapping]
-                    total_val_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
-                                                            (boxes, transcripts, gt_fns))
-                except:
-                    print(imagePaths)
-                    raise
+                gt_fns = [imagePaths[i] for i in mapping]
+                total_val_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
+                                                        (boxes, transcripts, gt_fns))
 
         return {
             'val_precious': total_val_metrics[0] / len(self.valid_data_loader),
