@@ -102,7 +102,7 @@ class ICDAR(Dataset):
         try: # TODO check what it handles. Looks like exceptions raised manually from __transform()
             return self.__transform((imageName, bboxes, transcripts))
         except Exception as e:
-            return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))
+            return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))  # TODO at least get another item but not random tensor
 
     def __len__(self):
         return len(self.images)

@@ -3,25 +3,11 @@ import torch
 import logging
 import pathlib
 import traceback
+from FOTS.base.base_model import BaseModel
 from FOTS.model.model import FOTSModel
 from FOTS.utils.bbox import Toolbox
 
 logging.basicConfig(level=logging.DEBUG, format='')
-
-
-def load_model(model_path, with_gpu):
-    logger.info("Loading checkpoint: {} ...".format(model_path))
-    checkpoints = torch.load(model_path)
-    if not checkpoints:
-        raise RuntimeError('No checkpoint found.')
-    config = checkpoints['config']
-    state_dict = checkpoints['state_dict']
-    model = FOTSModel(config)
-    model.load_state_dict(state_dict)
-    if with_gpu:
-        model = model.cuda()
-    model.eval()
-    return model
 
 
 def main(args:argparse.Namespace):
@@ -29,16 +15,14 @@ def main(args:argparse.Namespace):
     input_dir = args.input_dir
     output_dir = args.output_dir
     with_image = True if output_dir else False
-    with_gpu = True if torch.cuda.is_available() else False
 
-    model = load_model(model_path, with_gpu)
+    model = FOTSModel().to(torch.device("cuda"))
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
 
-    for image_fn in input_dir.glob('*.jpg'):
-        try:
-            with torch.no_grad():
-                ploy, im = Toolbox.predict(image_fn, model, with_image, output_dir, with_gpu)
-        except Exception as e:
-            traceback.print_exc()
+    with torch.no_grad():
+        for image_fn in input_dir.glob('*.jpg'):
+            ploy, im = Toolbox.predict(image_fn, model, with_image, output_dir, with_gpu=True)
 
 
 if __name__ == '__main__':

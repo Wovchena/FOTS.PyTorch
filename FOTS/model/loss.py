@@ -34,7 +34,7 @@ class DetectionLoss(nn.Module):
         return torch.mean(L_g * y_true_cls * training_mask) + classification_loss
 
     def __dice_coefficient(self, y_true_cls, y_pred_cls,
-                         training_mask):
+                         training_mask):  # TODO PyTorch should have its own impl
         '''
         dice loss
         :param y_true_cls:
@@ -64,9 +64,8 @@ class RecognitionLoss(nn.Module):
 
 class FOTSLoss(nn.Module):
 
-    def __init__(self, config):
+    def __init__(self):
         super(FOTSLoss, self).__init__()
-        self.mode = config['model']['mode']
         self.detectionLoss = DetectionLoss()
         self.recogitionLoss = RecognitionLoss()
 
@@ -75,19 +74,12 @@ class FOTSLoss(nn.Module):
                 y_true_recog, y_pred_recog,
                 training_mask):
 
-        recognition_loss = torch.tensor([0]).float()
-        detection_loss = torch.tensor([0]).float()
-
-        if self.mode == 'recognition':
+        detection_loss = self.detectionLoss(y_true_cls, y_pred_cls,
+                                            y_true_geo, y_pred_geo, training_mask)
+        if y_true_recog:
             recognition_loss = self.recogitionLoss(y_true_recog, y_pred_recog)
-        elif self.mode == 'detection':
-            detection_loss = self.detectionLoss(y_true_cls, y_pred_cls,
-                                                y_true_geo, y_pred_geo, training_mask)
-        elif self.mode == 'united':
-            detection_loss = self.detectionLoss(y_true_cls, y_pred_cls,
-                                                y_true_geo, y_pred_geo, training_mask)
-            if y_true_recog:
-                recognition_loss = self.recogitionLoss(y_true_recog, y_pred_recog)
+        else:
+            recognition_loss = torch.tensor([0]).float()
 
         recognition_loss = recognition_loss.to(detection_loss.device)
         return detection_loss, recognition_loss

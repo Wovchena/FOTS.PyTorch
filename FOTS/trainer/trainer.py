@@ -6,6 +6,13 @@ from ..utils.bbox import Toolbox
 from ..model.keys import keys
 from ..utils.util import strLabelConverter
 # from ..utils.util import show_box
+from ..utils.eval_tools.icdar2015 import eval as icdar_eval
+from ..model.loss import FOTSLoss
+
+
+def fots_metrics(pred, gt):
+    output = icdar_eval.eval(pred, gt, icdar_eval.default_evaluation_params())
+    return output['method']['precision'], output['method']['recall'], output['method']['hmean']
 
 
 class Trainer(BaseTrainer):
@@ -16,9 +23,9 @@ class Trainer(BaseTrainer):
         Inherited from BaseTrainer.
         self.optimizer is by default handled by BaseTrainer based on config.
     """
-    def __init__(self, model, loss, metrics, resume, config,
+    def __init__(self, metrics, config,
                  data_loader, toolbox: Toolbox, valid_data_loader=None):
-        super(Trainer, self).__init__(model, loss, metrics, resume, config)
+        super(Trainer, self).__init__(metrics, config)
         self.config = config
         self.batch_size = data_loader.batch_size
         self.data_loader = data_loader
@@ -27,16 +34,13 @@ class Trainer(BaseTrainer):
         self.log_step = int(np.sqrt(self.batch_size))
         self.toolbox = toolbox
         self.labelConverter = strLabelConverter(keys)
+        self.loss = FOTSLoss()
 
     def _to_tensor(self, *tensors):
         t = []
         for __tensors in tensors:
             t.append(__tensors.to(self.device))
         return t
-
-    def _eval_metrics(self, pred, gt):
-        precious, recall, hmean = self.metrics[0](pred, gt)
-        return np.array([precious, recall, hmean])
 
     def _train_epoch(self, epoch):
         """
@@ -100,8 +104,8 @@ class Trainer(BaseTrainer):
                 pred_transcripts = np.array(pred_transcripts)
 
             gt_fns = [imagePaths[i] for i in mapping]
-            total_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
-                                                    (boxes, transcripts, gt_fns))
+            total_metrics += fots_metrics((pred_boxes, pred_transcripts, pred_fns),
+                                                 (boxes, transcripts, gt_fns))
 
             pbar.set_postfix_str(f'Loss: {loss.item():.4f}, Detection loss: {det_loss.item():.4f}, '
                                  f'Recognition loss: {reg_loss.item():.4f}', refresh=False)
@@ -112,7 +116,7 @@ class Trainer(BaseTrainer):
             'recall': total_metrics[1] / len(self.data_loader),
             'hmean': total_metrics[2] / len(self.data_loader)
         }
-        if self.valid and 5 < epoch:  # skip first epochs as it generates too many proposals
+        if self.valid and 5 < epoch:  # skip first epochs as they generate too many proposals
             val_log = self._valid_epoch()
             log = {**log, **val_log}
             for key, value in log.items():
@@ -154,7 +158,7 @@ class Trainer(BaseTrainer):
                     pred_transcripts = np.array(pred_transcripts)
 
                 gt_fns = [imagePaths[i] for i in mapping]
-                total_val_metrics += self._eval_metrics((pred_boxes, pred_transcripts, pred_fns),
+                total_val_metrics += fots_metrics((pred_boxes, pred_transcripts, pred_fns),
                                                         (boxes, transcripts, gt_fns))
 
         return {

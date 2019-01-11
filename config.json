@@ -1,7 +1,5 @@
 {
     "name": "FOTS",
-    "cuda": true,
-    "gpus": [0],
     "data_loader": {
         "dataset":"icdar2015",
         "data_dir": "C:\\Users\\vzlobin\\Documents\\repo\\FOTS.PyTorch\\data\\icdar\\icdar2015\\4.4\\training",
@@ -14,29 +12,11 @@
         "shuffle": false
     },
 
-    "lr_scheduler_type": "ExponentialLR",
-    "lr_scheduler_freq": 1,
-    "lr_scheduler": {
-            "gamma": 0.94
-    },
- 
-    "optimizer_type": "Adam",
-    "optimizer": {
-        "lr": 0.01,
-        "weight_decay": 1e-5
-    },
-    "loss": "FOTSLoss",
-    "metrics": ["fots_metric"],
     "trainer": {
         "epochs": 100000,
         "save_dir": "runs/",
         "save_freq": 1,
         "verbosity": 2,
-        "monitor": "hmean",
-        "monitor_mode": "max"
-    },
-    "arch": "FOTSModel",
-    "model": {
-        "mode": "united"
+        "monitor": "hmean"
     }
 }

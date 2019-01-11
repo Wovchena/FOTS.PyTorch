@@ -13,11 +13,10 @@ import numpy as np
 
 class FOTSModel(BaseModel):
 
-    def __init__(self, config):
-        super().__init__(config)
-        self.mode = config['model']['mode']
+    def __init__(self):
+        super().__init__()
 
-        bbNet =  pm.__dict__['resnet50'](pretrained='imagenet') # resnet50 in paper
+        bbNet = pm.__dict__['resnet50'](pretrained='imagenet') # resnet50 in paper
         self.sharedConv = shared_conv.SharedConv(bbNet)
 
         nclass = len(keys) + 1

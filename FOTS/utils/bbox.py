@@ -4,7 +4,6 @@ import math
 import os
 import numpy as np
 
-# import locality_aware_nms as nms_locality
 from . import lanms
 import torch
 
@@ -303,7 +302,7 @@ class Toolbox:
         im_resized = im_resized.unsqueeze(0)
         im_resized = im_resized.permute(0, 3, 1, 2)
 
-        score, geometry, preds, boxes, mapping, indices = model.forward(im_resized, None, None)
+        score, geometry, preds, boxes, mapping, indices = model(im_resized, None, None)
 
         if len(boxes) != 0:
             boxes = boxes[:, :8].reshape((-1, 4, 2))
@@ -343,7 +342,7 @@ class Toolbox:
         :return: list of files found
         '''
         files = []
-        exts = ['jpg', 'png', 'jpeg', 'JPG']
+        exts = ['jpg', 'png', 'jpeg']
         for parent, dirnames, filenames in os.walk(test_data_path):
             for filename in filenames:
                 for ext in exts:
@@ -352,7 +351,3 @@ class Toolbox:
                         break
         # print('Find {} images'.format(len(files)))
         return files
-
-
-if __name__ == "__main__":
-    pass
