@@ -5,10 +5,6 @@ import os
 import codecs
 import importlib
 
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
 
 def print_help():
     sys.stdout.write('Usage: python %s.py -g=<gtFile> -s=<submFile> [-o=<outputFolder> -p=<jsonParams>]' %sys.argv[0])

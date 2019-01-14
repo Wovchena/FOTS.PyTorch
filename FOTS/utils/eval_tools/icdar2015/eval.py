@@ -1,6 +1,6 @@
 from collections import namedtuple
 import importlib
-from shapely.geometry import Polygon
+import Polygon as plg
 import numpy as np
 import re
 from typing import Dict, Tuple, List
@@ -11,7 +11,7 @@ def evaluation_imports():
     evaluation_imports: Dictionary ( key = module name , value = alias  )  with python modules used in the evaluation.
     """
     return {
-        'Polygon': 'Polygon',
+        'Polygon': 'plg',
         'numpy': 'np'
     }
 
@@ -87,7 +87,7 @@ def evaluate_method(pred: Tuple[dict], gt: Tuple[dict], evaluationParams:dict) -
         resBoxes[0, 3] = int(points[6])
         resBoxes[0, 7] = int(points[7])
         pointMat = resBoxes[0].reshape([2, 4]).T
-        return Polygon(pointMat)
+        return plg.Polygon(pointMat)
 
     def rectangle_to_polygon(rect):
         resBoxes = np.empty([1, 8], dtype = 'int32')
@@ -102,7 +102,7 @@ def evaluate_method(pred: Tuple[dict], gt: Tuple[dict], evaluationParams:dict) -
 
         pointMat = resBoxes[0].reshape([2, 4]).T
 
-        return Polygon(pointMat)
+        return plg.Polygon(pointMat)
 
     def rectangle_to_points(rect):
         points = [int(rect.xmin), int(rect.ymax), int(rect.xmax), int(rect.ymax), int(rect.xmax), int(rect.ymin),

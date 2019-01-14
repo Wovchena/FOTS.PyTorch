@@ -51,8 +51,6 @@ class BaseTrainer:
         self.metrics = metrics
         self.name = config['name']
         self.epochs = config['trainer']['epochs']
-        self.save_freq = config['trainer']['save_freq']
-        self.verbosity = config['trainer']['verbosity']
         self.summyWriter = SummaryWriter()
         self.checkpoint_dir = os.path.join(config['trainer']['save_dir'], self.name)
 
@@ -81,9 +79,8 @@ class BaseTrainer:
                 else:
                     log[key] = value
 
-            self.lr_scheduler.step(epoch)
-            lr = self.lr_scheduler.get_lr()[0]
-            self.logger.info('New Learning Rate: {:.8f}'.format(lr))
+            self.lr_scheduler.step()
+            self.logger.info('New Learning Rate: {:.8f}'.format(self.lr_scheduler.get_lr()[0]))
 
             self.summyWriter.add_scalars('Train', {'train_' + self.monitor: result[self.monitor],
                                                    'val_' + self.monitor: result[self.monitor]}, epoch)

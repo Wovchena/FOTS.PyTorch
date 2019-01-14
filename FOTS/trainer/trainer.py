@@ -11,7 +11,7 @@ from ..model.loss import FOTSLoss
 
 
 def fots_metrics(pred, gt):
-    output = icdar_eval.eval(pred, gt, icdar_eval.default_evaluation_params())
+    output = icdar_eval.eval(pred, gt, config=icdar_eval.default_evaluation_params())
     return output['method']['precision'], output['method']['recall'], output['method']['hmean']
 
 
@@ -104,8 +104,8 @@ class Trainer(BaseTrainer):
                 pred_transcripts = np.array(pred_transcripts)
 
             gt_fns = [imagePaths[i] for i in mapping]
-            total_metrics += fots_metrics((pred_boxes, pred_transcripts, pred_fns),
-                                                 (boxes, transcripts, gt_fns))
+            total_metrics += fots_metrics((pred_boxes, ['' for _ in pred_fns], pred_fns),
+                                                 (boxes, ['' for _ in gt_fns], gt_fns))
 
             pbar.set_postfix_str(f'Loss: {loss.item():.4f}, Detection loss: {det_loss.item():.4f}, '
                                  f'Recognition loss: {reg_loss.item():.4f}', refresh=False)
@@ -158,8 +158,8 @@ class Trainer(BaseTrainer):
                     pred_transcripts = np.array(pred_transcripts)
 
                 gt_fns = [imagePaths[i] for i in mapping]
-                total_val_metrics += fots_metrics((pred_boxes, pred_transcripts, pred_fns),
-                                                        (boxes, transcripts, gt_fns))
+                total_val_metrics += fots_metrics((pred_boxes, ['' for _ in pred_fns], pred_fns),
+                                                        (boxes, ['' for _ in gt_fns], gt_fns))
 
         return {
             'val_precious': total_val_metrics[0] / len(self.valid_data_loader),

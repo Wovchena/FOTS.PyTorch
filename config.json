@@ -15,8 +15,6 @@
     "trainer": {
         "epochs": 100000,
         "save_dir": "runs/",
-        "save_freq": 1,
-        "verbosity": 2,
         "monitor": "hmean"
     }
 }
