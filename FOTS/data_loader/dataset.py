@@ -5,6 +5,7 @@ import logging
 import numpy as np
 from itertools import compress
 import pathlib
+import random
 
 logger = logging.getLogger(__name__)
 
@@ -99,10 +100,10 @@ class ICDAR(Dataset):
         bboxes = self.bboxs[index] # num_words * 8
         transcripts = self.transcripts[index]
 
-        try: # TODO check what it handles. Looks like exceptions raised manually from __transform()
+        try:
             return self.__transform((imageName, bboxes, transcripts))
-        except Exception as e:
-            return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))  # TODO at least get another item but not random tensor
+        except (RuntimeError, TypeError):
+            return self.__getitem__(random.randint(0, len(self) - 1))
 
     def __len__(self):
         return len(self.images)
@@ -157,6 +158,7 @@ class ICDAR(Dataset):
             else:
                 im, text_polys, text_tags, selected_poly = crop_area(im, text_polys, text_tags, crop_background = False)
                 if text_polys.shape[0] == 0:
+                    print('looks that never happens')
                     raise RuntimeError('cannot find background')
                 h, w, _ = im.shape
 
@@ -228,10 +230,10 @@ class SynthTextDataset(Dataset):
         wordBBoxes = self.wordBBoxes[index] # 2 * 4 * num_words
         transcripts = self.transcripts[index]
 
-        try: # TODO check what it handles. Looks like exceptions raised manually from __transform()
+        try:
             return self.__transform((imageName, wordBBoxes, transcripts))
-        except:
-            return self.__getitem__(torch.tensor(np.random.randint(0, len(self))))
+        except (RuntimeError, TypeError):
+            return self.__getitem__(random.randint(0, len(self) - 1))
 
     def __len__(self):
         return len(self.imageNames)

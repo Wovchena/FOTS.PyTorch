@@ -26,7 +26,6 @@ class Trainer(BaseTrainer):
     def __init__(self, metrics, config,
                  data_loader, toolbox: Toolbox, valid_data_loader=None):
         super(Trainer, self).__init__(metrics, config)
-        self.config = config
         self.batch_size = data_loader.batch_size
         self.data_loader = data_loader
         self.valid_data_loader = valid_data_loader

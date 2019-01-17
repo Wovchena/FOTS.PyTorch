@@ -1,17 +1,5 @@
 {
     "name": "FOTS",
-    "data_loader": {
-        "dataset":"icdar2015",
-        "data_dir": "C:\\Users\\vzlobin\\Documents\\repo\\FOTS.PyTorch\\data\\icdar\\icdar2015\\4.4\\training",
-        "batch_size": 10,
-        "shuffle": true,
-        "workers": 4
-    },
-    "validation": {
-        "validation_split": 0.1,
-        "shuffle": false
-    },
-
     "trainer": {
         "epochs": 100000,
         "save_dir": "runs/",
