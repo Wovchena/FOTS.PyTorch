@@ -61,9 +61,9 @@ class Trainer(BaseTrainer):
 
         total_loss = 0
         total_metrics = np.zeros(3) # precious, recall, hmean
-        pbar = tqdm.tqdm(self.data_loader, 'Epoch ' + str(epoch))
+        pbar = tqdm.tqdm(self.data_loader, 'Epoch ' + str(epoch), ncols=120)
         for batch_idx, gt in enumerate(pbar):
-            imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping= gt
+            imagePaths, img, score_map, geo_map, training_mask, transcripts, boxes, mapping = gt
             img, score_map, geo_map, training_mask = self._to_tensor(img, score_map, geo_map, training_mask)
 
             # import cv2

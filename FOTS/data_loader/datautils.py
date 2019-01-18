@@ -12,7 +12,7 @@ def get_images(root):
     get images's path and name
     '''
     files = []
-    for ext in ['jpg', 'png', 'jpeg', 'JPG']:
+    for ext in ['jpg', 'png', 'jpeg']:
         files.extend(gb.glob(os.path.join(root, '*.{}'.format(ext))))
     name = []
     for i in range(len(files)):
